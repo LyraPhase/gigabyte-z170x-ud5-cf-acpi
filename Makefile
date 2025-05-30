@@ -16,9 +16,13 @@ ACPI:
 
 ACPI/$(dsdt:dat=dsl): ACPI extract
 	iasl -e $(addprefix acpixtract/, $(ssdt)) -p ACPI/$(basename $(dsdt)) -d acpixtract/$(dsdt)
-# iasl  -d acpixtract/$(dsdt)
 
-disassemble: ACPI/$(dsdt:dat=dsl)
+# Disassemble all ssdt including external symbols found in other SSDTs
+# ACPI/$(ssdt:dat=dsl): ACPI extract
+ACPI/ssdt%.dsl: ACPI extract
+	iasl -e $(addprefix acpixtract/, $(ssdt)) -p $(basename $@) -d acpixtract/$(basename $(notdir $@)).dat
+
+disassemble: ACPI/$(dsdt:dat=dsl) $(addprefix ACPI/, $(ssdt:dat=dsl))
 
 clean::
 	rm -rf ./acpixtract
