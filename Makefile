@@ -17,21 +17,22 @@ acpidump: $(acpidump) ## Dump ACPI tables from system
 acpixtract: ## no-help
 	mkdir acpixtract
 
-acpixtract/$(ssdt) acpixtract/$(dsdt)&: acpixtract $(acpidump) ## no-help
+$(addprefix acpixtract/, $(ssdt)) $(addprefix acpixtract/, $(dsdt))&: $(acpidump) | acpixtract ## no-help
+	@echo 'Target caused this to run: $@'
+	@echo 'Prerequisites newer than target: $?'
 	cd acpixtract && acpixtract ../$(acpidump)
 
 .PHONY: extract
-extract: acpixtract/$(ssdt) acpixtract/$(dsdt) ## Extract ACPI tables
+extract: $(addprefix acpixtract/, $(ssdt)) $(addprefix acpixtract/, $(dsdt)) ## Extract ACPI tables
 
 ACPI: ## no-help
 	mkdir ACPI
 
-ACPI/$(dsdt:dat=dsl): ACPI extract
+$(addprefix ACPI/, $(dsdt:dat=dsl)): $(addprefix acpixtract/, $(ssdt)) $(addprefix acpixtract/, $(dsdt)) | ACPI ## no-help
 	iasl -e $(addprefix acpixtract/, $(ssdt)) -p ACPI/$(basename $(dsdt)) -d acpixtract/$(dsdt)
 
 # Disassemble all ssdt including external symbols found in other SSDTs
-# ACPI/$(ssdt:dat=dsl): ACPI extract
-ACPI/ssdt%.dsl: ACPI extract
+ACPI/ssdt%.dsl: $(addprefix acpixtract/, $(ssdt)) | ACPI ## no-help
 	iasl -e $(addprefix acpixtract/, $(ssdt)) -p $(basename $@) -d acpixtract/$(basename $(notdir $@)).dat
 
 .PHONY: dsdt ssdt
