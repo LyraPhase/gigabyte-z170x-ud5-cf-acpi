@@ -3,9 +3,16 @@ ifneq ("$(wildcard ./main.mk)","")
 include ./main.mk
 endif
 
+## Filenames
 acpidump = gigabyte-z170x-ud5-cf-acpidump.hex
 dsdt = dsdt.dat
 ssdt = ssdt1.dat ssdt2.dat ssdt3.dat ssdt4.dat ssdt5.dat ssdt6.dat ssdt7.dat ssdt8.dat ssdt9.dat
+
+$(acpidump): ## no-help
+	sudo acpidump > $@
+
+.PHONY: acpidump
+acpidump: $(acpidump) ## Dump ACPI tables from system
 
 acpixtract: ## no-help
 	mkdir acpixtract
