@@ -1,0 +1,2 @@
+# Ignore generated .dat files from acpixtract
+acpixtract/*.dat
