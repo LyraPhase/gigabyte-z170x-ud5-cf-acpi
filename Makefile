@@ -42,7 +42,23 @@ ssdt: $(addprefix ACPI/, $(ssdt:dat=dsl)) ## no-help
 .PHONY: disassemble
 disassemble: ssdt dsdt ## Disassemble DSDT and all SSDTs
 
+compiled: ## no-help
+	mkdir compiled
+
+# Compile DSDT including external symbols found in other SSDTs
+compiled/%.aml: $(addsuffix .dsl, $(addprefix ACPI/, $(basename $@))) | compiled ## no-help
+	iasl -e $(addprefix ACPI/, $(ssdt:dat=dsl)) -p $(basename $@) $(addprefix ACPI/, $(notdir $(basename $@)).dsl)
+
+.PHONY: compile-dsdt compile-ssdt
+compile-dsdt: ACPI/$(dsdt:dat=dsl) ## no-help
+compile-ssdt: $(addprefix ACPI/, $(ssdt:dat=dsl)) $(addprefix compiled/, $(ssdt:dat=aml)) ## no-help
+
+.PHONY: compile
+compile: compile-dsdt compile-ssdt ## Compile DSDT including external symbols from all SSDTs
+
+
 .PHONY: clean
 clean:: ## Clean up generated files
 	rm -rf ./acpixtract
 	rm -rf ./ACPI
+	rm -rf ./compiled
